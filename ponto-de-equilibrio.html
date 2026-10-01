@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ponto de equilíbrio e planejamento financeiro</title>
+<style>
+:root{--bg:#f6f7f5;--card:#fff;--ink:#14231c;--mute:#5d6b64;--line:#dde3df;--rev:#1d5fd1;--cost:#d9622b;--goal:#12875a;--bad:#c23030;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121816;--card:#1b2420;--ink:#eef3f0;--mute:#9baba3;--line:#2e3a35;--rev:#5b97f0;--cost:#f0845a;--goal:#3fcf94;--bad:#f06a6a}}
+:root[data-theme="dark"]{--bg:#121816;--card:#1b2420;--ink:#eef3f0;--mute:#9babA3;--line:#2e3a35;--rev:#5b97f0;--cost:#f0845a;--goal:#3fcf94;--bad:#f06a6a}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:24px;line-height:1.2;margin:0 0 6px;font-weight:600}
+.sub{margin:0 0 20px;color:var(--mute);font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+label{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
+.hint{display:block;font-size:12px;color:var(--mute);font-weight:400}
+.field{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 10px}
+.field:focus-within{outline:2px solid var(--rev);outline-offset:1px}
+.field b{color:var(--mute);font-weight:500;font-size:14px;margin-right:6px}
+.field input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:18px;padding:10px 0;outline:none}
+.field u{text-decoration:none;color:var(--mute);font-size:13px;margin-left:6px}
+.res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.res div{background:var(--bg);border-radius:8px;padding:12px}
+.res small{display:block;color:var(--mute);font-size:13px}
+.res strong{display:block;font-size:22px;font-weight:600;margin-top:2px;overflow-wrap:anywhere}
+.msg{margin:14px 0 0;font-size:15px}
+.leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--mute);margin-bottom:8px}
+.leg i{display:inline-block;width:12px;height:3px;margin-right:5px;vertical-align:middle;border-radius:2px}
+.chart{position:relative;height:300px}
+.exp{font-size:14px;color:var(--mute);margin:0}
+.exp b{color:var(--ink)}
+</style>
+</head>
+<body>
+<main>
+<h1>Ponto de equilíbrio</h1>
+<p class="sub">Digite seus números. O resultado e o gráfico mudam na hora.</p>
+
+<section class="card">
+<div class="grid">
+<div><label for="f">Custos fixos <span class="hint">Aluguel, salários, internet... por mês</span></label><div class="field"><b>R$</b><input id="f" type="text" inputmode="decimal" value="5000"></div></div>
+<div><label for="p">Preço de venda <span class="hint">Quanto o cliente paga por unidade</span></label><div class="field"><b>R$</b><input id="p" type="text" inputmode="decimal" value="50"></div></div>
+<div><label for="v">Custo por unidade <span class="hint">O que você gasta para fazer ou comprar 1</span></label><div class="field"><b>R$</b><input id="v" type="text" inputmode="decimal" value="30"></div></div>
+<div><label for="q">Vendas planejadas <span class="hint">Sua meta de vendas no mês</span></label><div class="field"><input id="q" type="text" inputmode="decimal" value="350"><u>un.</u></div></div>
+</div>
+</section>
+
+<section class="card">
+<div class="res">
+<div><small>Ponto de equilíbrio</small><strong id="r1"></strong></div>
+<div><small>Faturamento mínimo</small><strong id="r2"></strong></div>
+<div><small>Resultado da sua meta</small><strong id="r3"></strong></div>
+<div><small>Folga de segurança</small><strong id="r4"></strong></div>
+</div>
+<p class="msg" id="msg"></p>
+</section>
+
+<section class="card">
+<div class="leg">
+<span><i style="background:var(--rev)"></i>Receita</span>
+<span><i style="background:var(--cost)"></i>Custo total</span>
+<span><i style="background:var(--mute)"></i>Custos fixos</span>
+<span><i style="background:var(--goal)"></i>Meta de vendas</span>
+</div>
+<div class="chart"><canvas id="c" role="img" aria-label="Gráfico: a linha de receita cruza a de custo total no ponto de equilíbrio. Uma linha vertical mostra a meta de vendas."></canvas></div>
+</section>
+
+<section class="card">
+<p class="exp"><b>Como ler:</b> o ponto de equilíbrio é a quantidade em que você vende o suficiente para pagar todos os custos. Abaixo dele, prejuízo. Acima, lucro. A folga de segurança mostra quanto suas vendas podem cair antes de você começar a perder dinheiro.</p>
+</section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var $=function(i){return document.getElementById(i)};
+function num(s){s=String(s).replace(/\s/g,'');if(s.indexOf(',')>-1){s=s.replace(/\./g,'').replace(',','.')}var n=parseFloat(s);return isNaN(n)?0:n}
+function brl(n){return (n<0?'-':'')+'R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+var chart=null;
+function build(){
+ if(typeof Chart==='undefined')return;
+ var mute=css('--mute'),line=css('--line');
+ chart=new Chart($('c'),{type:'scatter',
+  data:{datasets:[
+   {data:[],showLine:true,borderColor:css('--rev'),borderWidth:2.5,pointRadius:0},
+   {data:[],showLine:true,borderColor:css('--cost'),borderWidth:2.5,pointRadius:0},
+   {data:[],showLine:true,borderColor:mute,borderWidth:1.5,borderDash:[5,4],pointRadius:0},
+   {data:[],showLine:true,borderColor:css('--goal'),borderWidth:2,borderDash:[2,3],pointRadius:0},
+   {data:[],showLine:false,backgroundColor:css('--ink'),borderColor:css('--card'),borderWidth:2,pointRadius:7}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,animation:false,
+   plugins:{legend:{display:false},tooltip:{enabled:false}},
+   scales:{
+    x:{type:'linear',min:0,title:{display:true,text:'Unidades vendidas',color:mute},ticks:{color:mute},grid:{color:line}},
+    y:{min:0,title:{display:true,text:'Reais',color:mute},ticks:{color:mute,callback:function(v){return v>=1000?(v/1000).toLocaleString('pt-BR')+' mil':v}},grid:{color:line}}
+   }}});
+}
+function calc(){
+ var F=num($('f').value),P=num($('p').value),V=num($('v').value),Q=num($('q').value);
+ var ok=P>V;
+ var pe=ok?F/(P-V):0;
+ var maxX=Math.max(ok?pe*1.6:0,Q*1.25,10);
+ if(ok){
+  var lucro=Q*(P-V)-F;
+  var folga=Q>0?(Q-pe)/Q*100:0;
+  $('r1').textContent=Math.ceil(pe).toLocaleString('pt-BR')+' un.';
+  $('r2').textContent=brl(pe*P);
+  $('r3').textContent=brl(lucro);
+  $('r3').style.color=lucro>=0?'var(--goal)':'var(--bad)';
+  $('r4').textContent=Q>0?Math.round(folga)+'%':'—';
+  $('r4').style.color=folga>=0?'var(--ink)':'var(--bad)';
+  $('msg').textContent=Q<pe?'Com essa meta você ainda fica no prejuízo. Faltam '+Math.ceil(pe-Q).toLocaleString('pt-BR')+' unidades para empatar.':'Sua meta está acima do equilíbrio: os custos são pagos e ainda sobra lucro.';
+ }else{
+  ['r1','r2','r3','r4'].forEach(function(i){$(i).textContent='—';$(i).style.color='var(--ink)'});
+  $('msg').textContent='O preço de venda precisa ser maior que o custo por unidade. Senão, quanto mais você vende, mais perde.';
+ }
+ if(chart){
+  var d=chart.data.datasets;
+  d[0].data=[{x:0,y:0},{x:maxX,y:P*maxX}];
+  d[1].data=[{x:0,y:F},{x:maxX,y:F+V*maxX}];
+  d[2].data=[{x:0,y:F},{x:maxX,y:F}];
+  d[3].data=Q>0?[{x:Q,y:0},{x:Q,y:P*Q}]:[];
+  d[4].data=ok?[{x:pe,y:pe*P}]:[];
+  chart.options.scales.x.max=maxX;
+  chart.update();
+ }
+}
+build();
+['f','p','v','q'].forEach(function(i){$(i).addEventListener('input',calc)});
+calc();
+</script>
+</body>
+</html>
